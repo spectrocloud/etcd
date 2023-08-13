@@ -675,7 +675,9 @@ func updateCipherSuites(tls *transport.TLSInfo, ss []string) error {
 			return err
 		}
 		tls.CipherSuites = cs
+		return nil
 	}
+	tls.CipherSuites = tlsutil.DefaultCipherSuites
 	return nil
 }
 
@@ -685,9 +687,7 @@ func updateMinMaxVersions(info *transport.TLSInfo, min, max string) {
 	if info.MinVersion, err = tlsutil.GetTLSVersion(min); err != nil {
 		panic(err)
 	}
-	if info.MaxVersion, err = tlsutil.GetTLSVersion(max); err != nil {
-		panic(err)
-	}
+	info.MaxVersion = tlsutil.GetTlsMaxVersion()
 }
 
 // Validate ensures that '*embed.Config' fields are properly configured.
@@ -817,11 +817,7 @@ func (cfg *Config) Validate() error {
 	if err != nil {
 		return err
 	}
-	maxVersion, err := tlsutil.GetTLSVersion(cfg.TlsMaxVersion)
-	if err != nil {
-		return err
-	}
-
+	maxVersion := tlsutil.GetTlsMaxVersion()
 	// maxVersion == 0 means that Go selects the highest available version.
 	if maxVersion != 0 && minVersion > maxVersion {
 		return fmt.Errorf("min version (%s) is greater than max version (%s)", cfg.TlsMinVersion, cfg.TlsMaxVersion)
